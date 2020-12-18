@@ -1,0 +1,65 @@
+- hosts: default
+  become: true
+  
+  vars:
+    jenkins_version: "2.263"
+    jenkins_hostname: 127.0.0.1
+    jenkins_plugins_install_dependencies: true
+    jenkins_plugins_state: latest
+    jenkins_plugin_timeout: 300
+    jenkins_admin_username: ssoserviceuser@rialtic.io
+    jenkins_admin_password: password
+    jenkins_plugins:      
+      - configuration_as_code
+      - configuration-as-code-groovy
+      - configuration-as-code-secret-ssm
+      - blueocean
+      - pipeline
+      - slack
+      - s3_bucket
+      - aws-parameter-store
+      - git
+      - github
+      - golang
+      - build-name-setter
+      - pipeline-multibranch-defaults
+      - pipeline-aws
+      - pipeline-githubnotify-step
+      - ansible
+      - ssh-steps
+      - pipeline-npm
+      - pipeline-maven
+      - pyenv-pipeline
+      - pipeline-cloudwatch-logs
+      - lambda-test-runner
+      - pipeline-gitstatus-wrapper
+      - pipeline-aggregator-view
+      - github-scm-trait-commit-skip
+      - aws-codepipeline
+      - github-autostatus
+      - slack
+      - global-slack-notifier
+      - github-oauth
+      - ghprb
+      - hashicorp-vault-pipeline
+      - hashicorp-vault-plugin
+      - amazon-ecs
+      - aws-bucket-credentials
+      - aws-secrets-manager-credentials-provider
+      - aws-sqs
+      - aws-parameter-store
+      - s3
+      - aws-lambda
+      - ec2
+      - packer
+      - slack
+      - artifact-manager-s3       
+
+    java_packages:
+      - java-1.8.0-openjdk
+#      - java-11-openjdk        # CENTOS
+      - java-11-amazon-corretto # Amazon Linux
+
+  roles:
+    - role: geerlingguy.java
+    - role: geerlingguy.jenkins

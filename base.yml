@@ -1,0 +1,364 @@
+
+---
+# base.yml
+- name: 'Provision and Configure Base'
+  hosts: default
+  become: true
+  handlers:
+    - name: restart_service
+      service: 
+        name: service
+        state: restarted
+        
+  tasks:
+    - name: Install Sudo
+      package:
+        name: sudo
+        state: latest
+
+    - name: Ensure group "jenkins" exists
+      group:
+        name: jenkins
+        state: present
+
+    - name: Add the user 'jenkins' with a primary group of 'jenkins'
+      user:
+        name: jenkins
+        comment: Jenkins User
+        group: jenkins
+
+    - name: Install nodesource directly from yum package
+      yum:
+        name: https://rpm.nodesource.com/pub_14.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm
+        state: present
+
+    - name: Install Node
+      package:
+        name: nodejs
+        state: latest
+
+    - name: download nvm
+      get_url:
+        url: https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh
+        dest: /tmp/nvm.sh
+        force: yes
+        mode: 0755
+
+    - name: execute nvm install
+      shell: /tmp/nvm.sh
+      become_user: jenkins
+
+    # - name: Install NVM node
+    #   shell: source .nvm/nvm.sh && nvm install node
+    #   become_user: jenkins
+
+
+    # Only for centos/rhel
+    # - name: Install epel-release
+    #   package:
+    #     name: epel-release
+    #     state: latest
+
+    # Update URL, etc for AmazonLinux2 (different than RHEL/Centos)
+    - name: Add Hashicorp repo
+      yum_repository:
+        name: boundary
+        description: Hashicorp Stable
+        baseurl: https://rpm.releases.hashicorp.com/AmazonLinux/$releasever/$basearch/stable
+#        baseurl: https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable
+        gpgcheck: yes
+        gpgkey: https://rpm.releases.hashicorp.com/gpg
+
+    - name: Install yum-utils
+      package:
+        name: yum-utils
+        state: latest
+
+    - name: Install Wget
+      package:
+        name: wget
+        state: latest
+
+    - name: Ensure group "inspec" exists
+      group:
+        name: inspec
+        gid: 1010
+        state: present
+
+    - name: Add the user 'inspec'
+      user:
+        name: inspec
+        comment: 
+        uid: 1010
+        group: inspec
+
+    - name: Add Direnv to inspec user .bashrc
+      lineinfile:
+        path: /home/inspec/.bashrc
+        state: present
+        insertafter: EOF
+        line: 'eval "$(direnv hook bash)"'
+
+    - name: Add Direnv to root user .bashrc
+      lineinfile:
+        path: /root/.bashrc
+        state: present
+        insertafter: EOF
+        line: 'eval "$(direnv hook bash)"'
+
+    - name: Install Zip
+      package:
+        name: zip
+        state: latest
+
+    - name: Install make
+      package:
+        name: make
+        state: latest
+
+    - name: Install gcc-c++ for node
+      package:
+        name: gcc-c++
+        state: latest
+
+    - name: Fetch Inspec Installer
+      get_url:
+        url: https://omnitruck.chef.io/install.sh
+        dest: /tmp/install.sh
+        mode: '0777'
+
+    - name: Install Inspec   
+      command:
+        cmd: /tmp/install.sh -P inspec
+        warn: false
+
+    - name: Install ruby-devel
+      package:
+        name: ruby-devel
+        state: latest
+
+    - name: Install Bundler Gem
+      gem:
+        user_install: no
+        name: bundler
+        state: latest
+
+    - name: Install Rake Gem
+      gem:
+        user_install: no
+        name: rake
+        state: latest
+
+    - name: Install Semantic Gem
+      gem:
+        user_install: no
+        name: semantic
+        state: latest
+
+    - name: Install OS Gem
+      gem:
+        user_install: no
+        name: os
+        state: latest
+
+    - name: Install UUID Gem
+      gem:
+        user_install: no
+        name: uuid
+        state: latest
+
+    - name: Install Random Username Gem
+      gem:
+        user_install: no
+        name: random_username
+        state: latest
+
+    - name: Install Rubyzip Gem
+      gem:
+        user_install: no
+        name: rubyzip
+        state: latest
+
+        
+    # # REset '7' to '$releasever' once influx has a rhel 8 repo        
+    # - name: Add Influx repository
+    #   yum_repository:
+    #     name: InfluxDB
+    #     description: Influx YUM repo
+    #     baseurl: https://repos.influxdata.com/rhel/$releasever/$basearch/stable  
+    #     gpgcheck: yes
+    #     gpgkey: https://repos.influxdata.com/influxdb.key
+
+    # Requires python 3.6 for some crazy reason.  Not available on amazon linux
+    # - name: Add Azure CLI Repo
+    #   yum_repository:
+    #     name: azure-cli
+    #     description: Azure CLI
+    #     baseurl: https://packages.microsoft.com/yumrepos/azure-cli
+    #     gpgcheck: yes
+    #     gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+
+    - name: Install git
+      package:
+        name: git
+        state: latest
+        
+    # - name: Install npm
+    #   package:
+    #     name: npm
+    #     state: latest
+        
+    # - name: Install Python3
+    #   package:
+    #     name: python3
+    #     state: latest
+
+    - name: Install cowsay
+      package:
+        name: cowsay
+        state: latest
+
+#    - name: Install ansible
+    # Doesn't work on Amazon Linux
+    #   package:
+    #     name: ansible
+    #     state: latest
+      # DOES work on Amazon Linxu2, but is irrelevant since it already has to be installed
+#      command: amazon-linux-extras install ansible2=latest -y
+
+
+    - name: Fetch the GitHub remote host
+      command: 
+        cmd: ssh-keyscan -H github.com >> /etc/ssh/ssh_known_hosts
+        creates: /etc/ssh/ssh_known_hosts
+    
+    # AmazonLinux requLet me 
+    - name: Install python3-pip
+      package:
+        name: python3-pip
+        state: latest
+
+    - name: Install python3 packages
+      pip:
+        executable: pip3
+        # extra_args: --user
+        name: 
+          - pandas
+          - pymongo
+          - pipx
+          # - awscli
+               
+    # - name: Install Azure CLI
+    #   package:
+    #     name: azure-cli
+    #     state: latest
+
+    # Template this with the current terraform version
+    - name: Unarchive Terraform
+      unarchive:
+        src: https://releases.hashicorp.com/terraform/0.14.2/terraform_0.14.2_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+
+    # Template this with the current packer version
+    - name: Unarchive Packer
+      unarchive:
+        src: https://releases.hashicorp.com/packer/1.6.5/packer_1.6.5_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+
+    # Template this with the current vagrant version
+    - name: Unarchive Vagrant
+      unarchive:
+        src: https://releases.hashicorp.com/vagrant/2.2.14/vagrant_2.2.14_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+
+    # Template this with the current vault version
+    - name: Unarchive Vault
+      unarchive:
+        src: https://releases.hashicorp.com/vault/1.6.0/vault_1.6.0_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+
+    - name: Install Hashicorp Boundary
+      package:
+        name: boundary
+        state: latest
+
+    - name: Install Hashicorp Waypoint
+      package:
+        name: waypoint
+        state: latest
+
+    # Template this with the current consul version
+    - name: Unarchive Consul
+      unarchive:
+        src: https://releases.hashicorp.com/consul/1.9.0/consul_1.9.0_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+
+    # Template this with the current nomad version
+    - name: Unarchive Nomad
+      unarchive:
+        src: https://releases.hashicorp.com/nomad/1.0.0/nomad_1.0.0_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+
+    # One day the direnv package will work?  See https://github.com/direnv/direnv/issues/362
+    - name: Install Direnv for Centos
+      yum: 
+        name: https://kojipkgs.fedoraproject.org//vol/fedora_koji_archive02/packages/direnv/2.12.2/1.fc28/x86_64/direnv-2.12.2-1.fc28.x86_64.rpm
+
+# ## Testing (Prob won't work inside VBox)
+#                 # Update URL, etc for AmazonLinux2 (different than RHEL/Centos)
+#     - name: Add Docker-CE repo
+#       yum_repository:
+#         name: docker-ce-stable
+#         description: Docker-ce YUM repo
+#         baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+#         gpgcheck: yes
+#         gpgkey: https://download.docker.com/linux/centos/gpg
+
+#     - name: Install Docker-CE
+#       package:
+#         name: docker-ce
+#         state: latest
+
+#     - name: Install Docker-CE CLI
+#       package:
+#         name: docker-ce-cli
+#         state: latest
+
+#     - name: Ensure Docker is enabled
+#       service:
+#         name: docker
+#         state: started
+#         enabled: yes
+
+    - name: download SDKMan
+      get_url:
+        url: https://get.sdkman.io
+        dest: /tmp/sdkman.sh
+        force: yes
+        mode: 0755
+
+    - name: execute SDKMan instsall
+      shell: /tmp/sdkman.sh
+      args:
+        chdir: /tmp/
+      become_user: jenkins
+
+    - name: Add Yarn Repo
+      yum_repository:
+        name: yarn
+        description: Yarn Repository
+        baseurl: https://dl.yarnpkg.com/rpm/
+        gpgcheck: yes
+        gpgkey: https://dl.yarnpkg.com/rpm/pubkey.gpg
+
+    - name: Install Yarn
+      package:
+        name: yarn
+        state: latest
+
