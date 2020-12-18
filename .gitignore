@@ -1,0 +1,17 @@
+.*
+!.gitignore
+target/
+pom.xml.*
+release.properties
+*.log
+*.iml
+vendor/
+*.lock
+packer/*.pem
+envrc
+tfile.json
+test.rb
+*.azcli
+*.tfstate*
+**/node_modules
+**/*.swp
