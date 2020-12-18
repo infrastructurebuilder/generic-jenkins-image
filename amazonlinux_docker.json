@@ -12,7 +12,7 @@
     
     {
       "type": "docker"
-      ,"name": "inspec-client-image"
+      ,"name": "generic-jenkins-image"
       ,"image": "amazonlinux:2"
       ,"author": "admin@infrastructurebuilder.org"
       ,"commit": true
@@ -30,12 +30,12 @@
     {
       "type": "shell"
       ,"inline_shebang": "/bin/sh -x"
-      ,"execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+      ,"execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sh '{{ .Path }}'"
       ,"inline": [ "yum install -y sudo" ]
       ,"skip_clean": true
       ,"pause_before" : "5s"
     }
-    {
+    ,{
       "type": "shell"
       ,"inline_shebang": "/bin/sh -x"
       ,"execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
@@ -95,14 +95,14 @@
         "repository": "infrastructurebuilder/generic-jenkins-image",
         "tags": [ "{{ user `this_version` }}",  "latest" ]
       }
-     ,{
-          "type": "docker-push"
-          ,"login": true
-          ,"login_username": "{{user `container_hub_login`}}"
-          ,"login_password": "{{user `container_hub_password`}}"
-          ,"login_server": "{{user `container_registry_server`}}"
-      }
-    ]
+      ,{
+        "type": "docker-push"
+        ,"login": true
+        ,"login_username": "{{user `container_hub_login`}}"
+        ,"login_password": "{{user `container_hub_password`}}"
+        ,"login_server": "{{user `container_registry_server`}}"
+    }
+  ]
   ]
 
 }
