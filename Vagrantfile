@@ -73,12 +73,14 @@ Vagrant.configure("2") do |config|
   SHELL
 
   config.vm.provision "ansible_local" do |ansible|
+    ansible.extra_vars = { :the_user => ENV['THE_USER'], :the_password => ENV['THE_PASSWORD']  }
     ansible.playbook = "base.yml"
     ansible.verbose = true
   end
 
 
   config.vm.provision "ansible_local" do |ansible|
+    ansible.extra_vars = { :the_user => ENV['THE_USER'], :jenkins_username => ENV['JENKINS_USERNAME'], :jenkins_password => ENV['JENKINS_PASSWORD']  }
     ansible.become = true
     ansible.galaxy_role_file = "ansible_requirements.yml"
     ansible.galaxy_roles_path = "/etc/ansible/roles"
