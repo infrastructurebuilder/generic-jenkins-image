@@ -10,6 +10,9 @@
         name: service
         state: restarted
         
+  vars: 
+    jenkins_user: "{{ the_user }}"
+
   tasks:
     - name: Install Sudo
       package:
@@ -18,7 +21,7 @@
 
     - name: Ensure group "jenkins" exists
       group:
-        name: jenkins
+        name: "{{ jenkins_user }}"
         state: present
 
     - name: Add the user 'jenkins' with a primary group of 'jenkins'
@@ -216,7 +219,7 @@
     - name: Install cowsay
       package:
         name: cowsay
-        state: latest
+        state: absent
 
 #    - name: Install ansible
     # Doesn't work on Amazon Linux

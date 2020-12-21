@@ -7,8 +7,9 @@
     jenkins_plugins_install_dependencies: true
     jenkins_plugins_state: latest
     jenkins_plugin_timeout: 300
-    jenkins_admin_username: ssoserviceuser@rialtic.io
-    jenkins_admin_password: password
+    jenkins_user: "{{ the_user }}"
+    jenkins_admin_username: "{{ jenkins_username }}"
+    jenkins_admin_password: "{{ jenkins_password }}"
     jenkins_plugins:      
       - configuration_as_code
       - configuration-as-code-groovy
