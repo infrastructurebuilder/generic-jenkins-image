@@ -1,0 +1,108 @@
+
+{
+  "variables": {
+    "container_hub_password": "{{env `CONTAINER_HUB_PASSWORD`}}",
+    "container_hub_login": "{{env `CONTAINER_HUB_LOGIN`}}",
+    "container_registery_server" : "{{env `CONTAINER_REGISTRY`}}",
+    "this_version": "{{env `THIS_VERSION`}}"
+    ,"ansible_host": "default"
+    ,"ansible_connection": "docker"
+  },
+  "builders": [
+    
+    {
+      "type": "docker"
+      ,"name": "generic-jenkins-image"
+      ,"image": "amazonlinux:2"
+      ,"author": "admin@infrastructurebuilder.org"
+      ,"commit": true
+      ,"login_username": "{{user `container_hub_login`}}"
+      ,"login_password": "{{user `container_hub_password`}}"
+      ,"run_command": [
+        "-d", "-i", "-t", "--name", "{{user `ansible_host`}}", "--network=host", "--entrypoint=/bin/sh", "--", "{{.Image}}"
+      ]
+      ,"ssh_username": "root"
+
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell"
+      ,"inline_shebang": "/bin/sh -x"
+      ,"execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sh '{{ .Path }}'"
+      ,"inline": [ "yum install -y sudo" ]
+      ,"skip_clean": true
+      ,"pause_before" : "5s"
+    }
+    ,{
+      "type": "shell"
+      ,"inline_shebang": "/bin/sh -x"
+      ,"execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+      ,"inline": [ "yum update -y"
+        ,"amazon-linux-extras install python3.8"
+        ,"amazon-linux-extras install ruby2.6"
+        ,"amazon-linux-extras install docker"
+        ,"amazon-linux-extras install ansible2"
+        ,"amazon-linux-extras install java-openjdk11"
+    
+      ]
+      ,"skip_clean": true
+      ,"pause_before" : "5s"
+    }
+
+    ,{
+      "type": "ansible"
+      ,"playbook_file": "./base.yml"
+      ,"sftp_command" : "/usr/libexec/openssh/sftp-server -e"
+      ,"pause_before" : "5s"
+      ,"user": "root"
+
+      ,"extra_arguments": [
+        "--extra-vars"
+        ,"ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}}"
+      ]
+
+    }
+    ,{
+      "type": "ansible"
+      ,"playbook_file": "./jenkins.yml"
+      ,"sftp_command" : "/usr/libexec/openssh/sftp-server -e"
+      ,"pause_before" : "5s"
+      ,"user": "root"
+      ,"galaxy_file": "./ansible_requirements.yml"
+
+      ,"extra_arguments": [
+        "--extra-vars"
+        ,"ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}}"
+      ]
+
+    }
+    ,{
+      "type": "shell"
+      ,"inline_shebang": "/bin/sh -x"
+      ,"execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+      ,"inline": [ "yum update -y" ]
+      ,"skip_clean": true
+      ,"pause_before" : "5s"
+    }
+  ],
+  "post-processors": [
+    [
+      
+      {
+        "type": "docker-tag",
+        "repository": "infrastructurebuilder/generic-jenkins-image",
+        "tags": [ "{{ user `this_version` }}",  "latest" ]
+      }
+      ,{
+        "type": "docker-push"
+        ,"login": true
+        ,"login_username": "{{user `container_hub_login`}}"
+        ,"login_password": "{{user `container_hub_password`}}"
+        ,"login_server": "{{user `container_registry_server`}}"
+    }
+  ]
+  ]
+
+}
