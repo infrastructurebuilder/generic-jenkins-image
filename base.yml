@@ -99,6 +99,12 @@
         insertafter: EOF
         line: 'eval "$(direnv hook bash)"'
 
+    - name: Touch the root .bashrc
+      file:
+        path: /root/.bashrc
+        state: touch
+        mode: 0400
+  
     - name: Add Direnv to root user .bashrc
       lineinfile:
         path: /root/.bashrc
@@ -109,6 +115,16 @@
     - name: Install Zip
       package:
         name: zip
+        state: latest
+
+    - name: Install unZip
+      package:
+        name: unzip
+        state: latest
+
+    - name: Install which
+      package:
+        name: which
         state: latest
 
     - name: Install make
