@@ -1,0 +1,7 @@
+export CONTAINER_HUB_LOGIN=
+export CONTAINER_HUB_PASSWORD=
+export CONTAINER_REGISTRY=https://hub.docker.com/
+export THE_USER=jenkins
+export THIS_VERSION=$(cat VERSION)
+export JENKINS_USERNAME=
+export JENKINS_PASSWORD=
